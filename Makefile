@@ -53,6 +53,7 @@ bc bitcode: $(PROJECT)-$(REVISION).bc
 .PHONY: clean
 clean:
 	-$(MAKE) -C llvm_refgraph clean
+	-rm -f compile_commands.json
 	-rm -f *.bc *.ll *.csv *.dot *.png
 	-$(MAKE) -C ffmpeg -f ../ffmpeg.mak clean
 	-$(MAKE) -C qemu -f ../qemu.mak clean
