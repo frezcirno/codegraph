@@ -1,0 +1,13 @@
+CMakeFiles
+CMakeCache
+*.cmake
+*.so
+*.dot
+*.bc
+*.ll
+*.csv
+*.png
+build
+.idea
+.cache
+compile_commands.json
