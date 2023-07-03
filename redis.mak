@@ -1,10 +1,7 @@
-export CFLAGS="-O0"
-
 .PHONY: default
 default:
-	$(MAKE) CC=wllvm -j
-	-extract-bc src/redis-server -o redis.bc
-	-extract-bc redis-server -o redis.bc
+	$(MAKE) -j $$(nproc)
+	[ -f redis-server ] && extract-bc redis-server -o redis.bc || extract-bc src/redis-server -o redis.bc
 
 clean:
 	$(MAKE) clean
