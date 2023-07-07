@@ -1,3 +1,4 @@
+import sys
 from gitbox import vul_db
 from loguru import logger
 import subprocess as sp
@@ -6,20 +7,24 @@ import pandas as pd
 clone_detection_result = vul_db.execute("""
     SELECT id,
            project_id, revision, func_name,
-           vuln_project_id, vuln_commit_id
+           vuln_project_id, vuln_commit_id, vuln_func_name
     FROM clone_detection_result
     WHERE project_id IN ('ffmpeg', 'openssl', 'php-src', 'imagemagick', 'linux', 'qemu', 'redis')
 """)
 
-clone_detection_result = pd.DataFrame(clone_detection_result, columns=[
-                                      'id', 'project_id', 'revision', 'func_name', 'vuln_project_id', 'vuln_commit_id'])
+clone_detection_result = pd.DataFrame(
+    clone_detection_result, columns=[
+        'id',
+        'project_id', 'revision', 'func_name',
+        'vuln_project_id', 'vuln_commit_id', 'vuln_func_name'
+    ])
 
 
 def subcall(cmd):
     logger.info(cmd)
     rv = sp.call(cmd, shell=True, stdout=sp.DEVNULL, stderr=sp.DEVNULL)
     if rv != 0:
-        logger.error(f"Failed to execute {cmd}")
+        logger.error(f"Failed to execute {cmd}, {rv}")
 
 
 def make_graph(project_id):
@@ -38,10 +43,9 @@ def make_graph(project_id):
             break
     print(tasks)
     for task in tasks:
-        subcall(f"make PROJECT={project_id} REVISION={task.vuln_commit_id}^ ENTRY={task.func_name} png ll")
-        subcall(f"make PROJECT={project_id} REVISION={task.revision} ENTRY={task.func_name} png ll")
+        subcall(f"make PROJECT={project_id} REVISION={task.vuln_commit_id}^ REVISION2={task.revision} ENTRY={task.vuln_func_name} diff")
 
-import sys
+
 if len(sys.argv) > 1:
     make_graph(sys.argv[1])
 else:

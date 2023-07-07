@@ -1,0 +1,71 @@
+{
+	"functions": [
+		{
+			"blocks": {
+				"%1": {
+					"end_line": null,
+					"start_line": null
+				}
+			},
+			"calls": null,
+			"edges": null,
+			"entry": "%1",
+			"name": "_Z3fooc",
+			"returns": [
+				{
+					"block": "%1",
+					"type": "ret"
+				}
+			],
+			"unresolved_calls": null
+		},
+		{
+			"blocks": {
+				"%1": {
+					"end_line": null,
+					"start_line": null
+				}
+			},
+			"calls": [
+				{
+					"dst": "_Z3fooc",
+					"src": "%1",
+					"type": "call"
+				}
+			],
+			"edges": null,
+			"entry": "%1",
+			"name": "_Z3bari",
+			"returns": [
+				{
+					"block": "%1",
+					"type": "ret"
+				}
+			],
+			"unresolved_calls": null
+		},
+		{
+			"blocks": {
+				"%0": {
+					"end_line": null,
+					"start_line": null
+				}
+			},
+			"calls": [],
+			"edges": null,
+			"entry": "%0",
+			"name": "main",
+			"returns": [
+				{
+					"block": "%0",
+					"type": "ret"
+				}
+			],
+			"unresolved_calls": [
+				"%0",
+				"%0"
+			]
+		}
+	],
+	"module": "1.bc"
+}

@@ -12,5 +12,6 @@ build
 .cache
 compile_commands.json
 projects/
+output/
 libs/
 test.ok

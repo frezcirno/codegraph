@@ -63,7 +63,7 @@ def plot(edge_df, entry_sym, input_filename):
 
     edges.sort()
     for edge in edges:
-        dot.edge(edge[0], edge[1], label=str(edge[2]))
+        dot.edge(edge[0], edge[1], label=str(int(edge[2])))
 
     print(dot)
 

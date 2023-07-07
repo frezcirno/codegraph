@@ -1,0 +1,4 @@
+#!/bin/bash
+DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
+make -C $DIR
+opt --enable-new-pm=0 -load $DIR/build/libllvmpass.so $@ >/dev/null
