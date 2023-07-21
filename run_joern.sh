@@ -27,6 +27,7 @@ pushd $SRC
         -exec sh -c "dst=\"$WORKSPACE/{}\"; mkdir -p \$(dirname \$dst); echo {}; cp {} \$dst" \;
 popd
 
+exit 0
 rm -rf $OUTPUT
 $DIR/octopus-joern/joern-parse -outformat neo4j -outdir $OUTPUT $WORKSPACE
 rm -rf $WORKSPACE

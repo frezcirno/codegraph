@@ -16,3 +16,4 @@ output/
 libs/
 test.ok
 joern-output/
+neo4j-community-*/
