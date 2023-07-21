@@ -16,8 +16,9 @@ default:
 	$(MAKE) LLVM=1 defconfig
 	sed -e 's|CONFIG_LD_ORPHAN_WARN_LEVEL="error"|CONFIG_LD_ORPHAN_WARN_LEVEL="warn"|g' \
 	    -e 's|CONFIG_WERROR=y|CONFIG_WERROR=n|g' \
+	    -e 's|CONFIG_JUMP_LABEL=.*|CONFIG_JUMP_LABEL=n|g' \
 		-i .config
-	KCFLAGS="$(CFLAGS)" $(MAKE) LLVM=1 V=1 vmlinux -j $$(nproc)
+	KCFLAGS=" -fno-pie -no-integrated-as" $(MAKE) LLVM=1 V=1 vmlinux -j $$(nproc)
 	extract-bc vmlinux -o linux.bc
 
 clean:

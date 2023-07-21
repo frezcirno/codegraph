@@ -1,15 +1,29 @@
 LLVM_COMPILER=clang
 CC=wllvm
-CFLAGS=-O0
+# CFLAGS=-O0
 
-PROJECT_PATH=projects/$(PROJECT)
-BTCODE_BASE=output/$(PROJECT)/bitcode
-BTCODE_REV=$(BTCODE_BASE)/$(REVISION)
-BTCODE_REV2=$(BTCODE_BASE)/$(REVISION2)
-PROJECT_ENTRY_BASE=output/$(PROJECT)/$(ENTRY)
-RGRAPH_REV=$(PROJECT_ENTRY_BASE)/$(REVISION)$(RGRAPH_SPEC_SUFFIX)
-RGRAPH_REV2=$(PROJECT_ENTRY_BASE)/$(REVISION2)$(RGRAPH_SPEC_SUFFIX)
-RGRAPH_REVDIFF=$(PROJECT_ENTRY_BASE)/$(REVISION)-$(REVISION2)$(RGRAPH_SPEC_SUFFIX)
+ifeq ($(PROJECT),)
+$(error PROJECT is not set)
+endif
+ifeq ($(REVISION),)
+$(error REVISION is not set)
+endif
+
+PROJECT_SRC=projects/$(PROJECT)
+PROJECT_OUTPUT=output/$(PROJECT)
+PROJECT_ENTRY_OUTPUT=$(PROJECT_OUTPUT)/$(ENTRY)
+
+BITCODE_OUTPUT=$(PROJECT_OUTPUT)/bitcode
+BITCODE=$(BITCODE_OUTPUT)/$(REVISION)
+BITCODE2=$(BITCODE_OUTPUT)/$(REVISION2)
+ALL_BITCODE=$(BITCODE).bc $(BITCODE2).bc
+ALL_BITCODE_CSV=$(BITCODE).csv $(BITCODE2).csv
+
+RGRAPH1=$(PROJECT_ENTRY_OUTPUT)/$(REVISION)$(RGRAPH_SPEC_SUFFIX)
+RGRAPH2=$(PROJECT_ENTRY_OUTPUT)/$(REVISION2)$(RGRAPH_SPEC_SUFFIX)
+ALL_RGRAPH_DOTS=$(RGRAPH1).dot $(RGRAPH2).dot
+RGRAPH_REVDIFF=$(PROJECT_ENTRY_OUTPUT)/$(REVISION)-$(REVISION2)$(RGRAPH_SPEC_SUFFIX)
+
 PROJECT_MAK=$(shell realpath $(PROJECT).mak)
 PRELEVEL ?= 3
 POSTLEVEL ?= 3
@@ -30,18 +44,14 @@ test.ok:
 %.ll: %.bc
 	llvm-dis $<
 
-%.csv: %.bc | llvmpass
+$(ALL_BITCODE_CSV): %.csv: %.bc | llvmpass
 	opt --enable-new-pm=0 -load llvmpass/build/libllvmpass.so -refgraph $< >/dev/null 2>$@
 
-$(RGRAPH_REV).dot: $(BTCODE_REV).csv csv2dot.py
+$(ALL_RGRAPH_DOTS): $(PROJECT_ENTRY_OUTPUT)/%$(RGRAPH_SPEC_SUFFIX).dot: $(BITCODE_OUTPUT)/%.csv csv2dot.py
 	mkdir -p $(dir $@)
 	python3 ./csv2dot.py $< $(ENTRY) >$@
 
-$(RGRAPH_REV2).dot: $(BTCODE_REV2).csv csv2dot.py
-	mkdir -p $(dir $@)
-	python3 ./csv2dot.py $< $(ENTRY) >$@
-
-$(RGRAPH_REVDIFF).dot: $(RGRAPH_REV).dot $(RGRAPH_REV2).dot | dotdiff.py
+$(RGRAPH_REVDIFF).dot: $(RGRAPH1).dot $(RGRAPH2).dot dotdiff.py
 	mkdir -p $(dir $@)
 	python3 ./dotdiff.py $^ >$@
 
@@ -52,28 +62,27 @@ $(RGRAPH_REVDIFF).dot: $(RGRAPH_REV).dot $(RGRAPH_REV2).dot | dotdiff.py
 llvmpass:
 	$(MAKE) -C llvmpass
 
-$(BTCODE_REV).bc: | test.ok
-	v1=$$(git -C $(PROJECT_PATH) rev-list -n 1 HEAD); \
-	v2=$$(git -C $(PROJECT_PATH) rev-list -n 1 $(REVISION)); \
+$(ALL_BITCODE): $(BITCODE_OUTPUT)/%.bc: | test.ok
+	v1=$$(git -C $(PROJECT_SRC) rev-list -n 1 HEAD); \
+	v2=$$(git -C $(PROJECT_SRC) rev-list -n 1 $*); \
 	if [ "$$v1" != "$$v2" ]; then \
-		$(MAKE) -C $(PROJECT_PATH) -f $(PROJECT_MAK) clean || true ; \
-		git -C $(PROJECT_PATH) restore --staged . ; \
-		git -C $(PROJECT_PATH) restore . ; \
-		git -C $(PROJECT_PATH) clean -dfx ; \
-		git -C $(PROJECT_PATH) checkout $(REVISION) ; \
+		$(MAKE) -C $(PROJECT_SRC) -f $(PROJECT_MAK) clean || true ; \
+		git -C $(PROJECT_SRC) restore --staged . ; \
+		git -C $(PROJECT_SRC) restore . ; \
+		git -C $(PROJECT_SRC) clean -dfx ; \
+		git -C $(PROJECT_SRC) checkout $* ; \
 	fi
-	CC=$(CC) CFLAGS="$(CFLAGS)" LLVM_COMPILER=$(LLVM_COMPILER) $(MAKE) -C $(PROJECT_PATH) -f $(PROJECT_MAK)
+	CC=$(CC) CFLAGS="$(CFLAGS)" LLVM_COMPILER=$(LLVM_COMPILER) $(MAKE) -C $(PROJECT_SRC) -f $(PROJECT_MAK)
 	mkdir -p $(dir $@)
-	mv $(PROJECT_PATH)/$(PROJECT).bc $(BTCODE_REV).bc
+	mv $(PROJECT_SRC)/$(PROJECT).bc $(BITCODE).bc
 
 .PHONY: clean
 clean:
-	-$(MAKE) -C $(PROJECT_PATH) -f $(PROJECT_MAK) clean
-	git -C $(PROJECT_PATH) restore --staged .
-	git -C $(PROJECT_PATH) restore .
-	git -C $(PROJECT_PATH) clean -dfx
-	-rm $(BTCODE_REV).bc $(BTCODE_REV).ll $(BTCODE_REV).csv \
-		$(BTCODE_REV2).bc $(BTCODE_REV2).ll $(BTCODE_REV2).csv
+	-$(MAKE) -C $(PROJECT_SRC) -f $(PROJECT_MAK) clean
+	git -C $(PROJECT_SRC) restore --staged .
+	git -C $(PROJECT_SRC) restore .
+	git -C $(PROJECT_SRC) clean -dfx
+	-rm $(BITCODE).bc $(BITCODE).ll $(BITCODE).csv
 
 .PHONY: clean_all
 clean_all:
@@ -88,8 +97,8 @@ clean_all:
 	-$(MAKE) -C projects/openssl -f ../../openssl.mak clean
 
 .PHONY: csv ll png diff bc bitcode
-ll: $(BTCODE_REV).ll
-csv: $(BTCODE_REV).csv
-png: $(RGRAPH_REV).png
+ll: $(BITCODE).ll
+csv: $(BITCODE).csv
+png: $(RGRAPH1).png
 diff: $(RGRAPH_REVDIFF).png
-bc bitcode: $(BTCODE_REV).bc
+bc bitcode: $(BITCODE).bc

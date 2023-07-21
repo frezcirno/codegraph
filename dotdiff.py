@@ -61,13 +61,13 @@ def calculate_diff(dotfile1, dotfile2):
             diff_graph.edge(*edge, color='green')
 
     # Find nodes and edges that are in both dot files
-    for node in graph1['nodes']:
-        if node in graph2['nodes']:
-            diff_graph.node(node)
+    # for node in graph1['nodes']:
+    #     if node in graph2['nodes']:
+    #         diff_graph.node(node)
 
-    for edge in graph1['edges']:
-        if edge in graph2['edges']:
-            diff_graph.edge(*edge)
+    # for edge in graph1['edges']:
+    #     if edge in graph2['edges']:
+    #         diff_graph.edge(*edge)
 
     return diff_graph
 
